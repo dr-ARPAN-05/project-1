@@ -82,7 +82,7 @@ function PlanCard({ plan, featured, badge, delay, inView }) {
       </ul>
 
       <a
-        href="https://www.arpansarkar.org"
+        href="https://www.arpansarkar.org/plans"
         className={`mt-6 block rounded-lg py-2.5 text-center text-sm font-semibold transition ${
           isAmber ? 'bg-amber text-base hover:bg-amber/90' : 'bg-violet text-white hover:bg-violet-soft'
         }`}
@@ -127,7 +127,7 @@ export default function Pricing() {
         </motion.h2>
         <p className="mt-3 max-w-xl text-sm text-white/45">
           Plans are purchased on{' '}
-          <a href="https://www.arpansarkar.org" className="text-lavender underline underline-offset-2">
+          <a href="https://www.arpansarkar.org/plans" className="text-lavender underline underline-offset-2">
             arpansarkar.org
           </a>{' '}
           — once you've got one, it unlocks right here in your dashboard.

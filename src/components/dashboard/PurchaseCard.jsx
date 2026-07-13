@@ -4,10 +4,10 @@ import { DAYS, SLOT_LABELS } from '../../lib/plans';
 const CONTACT_PHONE = import.meta.env.VITE_CONTACT_PHONE || '';
 const WHATSAPP_DIGITS = CONTACT_PHONE.replace(/\D/g, '');
 
-export default function PurchaseCard({ purchase: p, onCompleteBooking }) {
+export default function PurchaseCard({ purchase: p, plan, onCompleteBooking }) {
   const isWeekly = p.weekly_day !== null && p.weekly_day !== undefined;
   const isDate = !!p.scheduled_date;
-  const isAdminScheduled = ['group_session', 'group_monthly'].includes(p.plan_key);
+  const isAdminScheduled = plan?.schedule_type === 'admin_sets';
   const needsBooking = !isAdminScheduled && !isWeekly && !isDate;
 
   return (

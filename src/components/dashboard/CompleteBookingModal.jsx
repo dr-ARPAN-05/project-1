@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, Users, X } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
-import { getSlotsForPlan, DAYS } from '../../lib/plans';
+import { getSlotsForScheduleType, DAYS } from '../../lib/plans';
 
 function fmt(date) {
   return date.toISOString().split('T')[0];
@@ -25,17 +25,18 @@ function getAvailableDates() {
 }
 
 /**
- * Lets a student pick their date/slot (personal_session) or weekly day/slot
- * (personal_monthly/yearly/ghost_deal) for a purchase that's ALREADY paid —
- * no payment happens here. Saves directly to the purchase row they own.
- * group_session/group_monthly plans don't need this — Arpan sets those.
+ * Lets a student pick their date/slot (schedule_type: pick_date) or weekly
+ * day/slot (pick_weekly) for a purchase that's ALREADY paid — no payment
+ * happens here. Saves directly to the purchase row they own. admin_sets
+ * plans (group sessions) don't use this — Arpan sets those via AdminGroupSessions.
+ * `plan` is the matching row from the shared `plans` table, passed in by
+ * Dashboard.jsx, since schedule_type is admin-defined per plan, not
+ * something this component should guess from the plan_key string.
  */
-export default function CompleteBookingModal({ purchase, onClose, onSaved }) {
-  const scheduleType = ['personal_monthly', 'personal_yearly', 'ghost_deal'].includes(purchase.plan_key)
-    ? 'pick_weekly'
-    : 'pick_date';
+export default function CompleteBookingModal({ purchase, plan, onClose, onSaved }) {
+  const scheduleType = plan?.schedule_type || 'pick_date';
   const isPickDate = scheduleType === 'pick_date';
-  const slots = getSlotsForPlan(purchase.plan_key);
+  const slots = getSlotsForScheduleType(scheduleType);
 
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -54,22 +55,35 @@ export default function CompleteBookingModal({ purchase, onClose, onSaved }) {
       .select('blocked_date, slot')
       .then(({ data }) => setBlockedDates((data || []).filter((b) => !b.slot).map((b) => b.blocked_date)));
 
-    if (isPickDate) {
-      supabase
-        .from('purchases')
-        .select('scheduled_date, scheduled_slot')
-        .eq('plan_key', 'personal_session')
-        .eq('status', 'paid')
-        .then(({ data }) => setTakenSlots(data || []));
-    } else {
-      supabase
-        .from('purchases')
-        .select('weekly_day, weekly_slot')
-        .in('plan_key', ['personal_monthly', 'personal_yearly', 'ghost_deal'])
-        .eq('status', 'paid')
-        .then(({ data }) => setTakenDays(data || []));
-    }
-  }, [isPickDate]);
+    // Slot conflicts are checked across every plan that shares this
+    // schedule_type (personal-style slots are one shared calendar,
+    // regardless of which specific plan_key someone bought), not a
+    // hardcoded plan_key list — new admin-created plans need this to work
+    // out of the box.
+    supabase
+      .from('plans')
+      .select('plan_key')
+      .eq('schedule_type', scheduleType)
+      .then(({ data }) => {
+        const keys = (data || []).map((p) => p.plan_key);
+        if (keys.length === 0) return;
+        if (isPickDate) {
+          supabase
+            .from('purchases')
+            .select('scheduled_date, scheduled_slot')
+            .in('plan_key', keys)
+            .eq('status', 'paid')
+            .then(({ data }) => setTakenSlots(data || []));
+        } else {
+          supabase
+            .from('purchases')
+            .select('weekly_day, weekly_slot')
+            .in('plan_key', keys)
+            .eq('status', 'paid')
+            .then(({ data }) => setTakenDays(data || []));
+        }
+      });
+  }, [isPickDate, scheduleType]);
 
   const isDateBlocked = (date) => blockedDates.includes(fmt(date));
   const isDateSlotTaken = (date, slotKey) =>

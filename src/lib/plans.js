@@ -17,11 +17,14 @@ export const FIXED_SLOTS = {
   ],
 };
 
-// Which slot group does each plan use?
-export function getSlotsForPlan(planKey) {
-  if (planKey === 'personal_session') return FIXED_SLOTS.personal_session;
-  if (['personal_monthly','personal_yearly','ghost_deal'].includes(planKey)) return FIXED_SLOTS.personal_weekly;
-  return FIXED_SLOTS.group; // group_session, group_monthly
+// Which slot group does a plan use, based on its schedule_type (from the
+// shared `plans` table) rather than a hardcoded plan_key — plan_keys are
+// created dynamically by admins now (e.g. free sessions), so anything
+// keyed off a fixed plan_key list would silently break for new plans.
+export function getSlotsForScheduleType(scheduleType) {
+  if (scheduleType === 'pick_date') return FIXED_SLOTS.personal_session;
+  if (scheduleType === 'pick_weekly') return FIXED_SLOTS.personal_weekly;
+  return FIXED_SLOTS.group; // admin_sets
 }
 
 export const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];

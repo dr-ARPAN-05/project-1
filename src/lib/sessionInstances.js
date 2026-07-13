@@ -23,7 +23,7 @@ function nextWeekdayOccurrence(weekday, from) {
  * has) into individual "session instances", then buckets each into past /
  * today / upcoming by date.
  *
- * Purchases with no schedule yet (personal_session/monthly/yearly/ghost_deal
+ * Purchases with no schedule yet (schedule_type: pick_date/pick_weekly
  * awaiting a date/slot pick) are intentionally excluded here — those are
  * surfaced separately as "complete your booking" prompts, since they aren't
  * a session yet.
@@ -35,9 +35,10 @@ function nextWeekdayOccurrence(weekday, from) {
  *
  * @param {Array} purchases
  * @param {Array} groupSessions
+ * @param {Record<string, {schedule_type: string}>} plansByKey - from the shared `plans` table
  * @returns {{past: Array, today: Array, upcoming: Array}}
  */
-export function buildSessionInstances(purchases, groupSessions) {
+export function buildSessionInstances(purchases, groupSessions, plansByKey = {}) {
   const today = startOfDay(new Date());
   const instances = [];
 
@@ -79,13 +80,15 @@ export function buildSessionInstances(purchases, groupSessions) {
   }
 
   const groupPlanKeys = new Set(
-    purchases.filter((p) => p.status === 'paid' && ['group_session', 'group_monthly'].includes(p.plan_key)).map((p) => p.plan_key)
+    purchases
+      .filter((p) => p.status === 'paid' && plansByKey[p.plan_key]?.schedule_type === 'admin_sets')
+      .map((p) => p.plan_key)
   );
   for (const gs of groupSessions || []) {
     if (!groupPlanKeys.has(gs.plan_key)) continue;
     instances.push({
       id: `gs-${gs.id}`,
-      label: gs.plan_key === 'group_monthly' ? 'Group Mentorship (monthly)' : 'Group Session',
+      label: plansByKey[gs.plan_key]?.name || 'Group Session',
       date: startOfDay(gs.session_date),
       slotLabel: SLOT_LABELS[gs.session_slot] || gs.session_slot,
       zoomJoinUrl: gs.zoom_link,

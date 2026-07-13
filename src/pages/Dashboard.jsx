@@ -21,10 +21,6 @@ const ADMIN_TABS = [
 const CONTACT_PHONE = import.meta.env.VITE_CONTACT_PHONE || '';
 const WHATSAPP_DIGITS = CONTACT_PHONE.replace(/\D/g, '');
 
-// Only these plan types need the student to pick their own date/slot —
-// group plans are scheduled by Arpan via AdminGroupSessions instead.
-const SELF_SCHEDULED_PLANS = ['personal_session', 'personal_monthly', 'personal_yearly', 'ghost_deal'];
-
 // Auth is already resolved by the time this renders — App.jsx wraps this
 // route in <ProtectedRoute>. is_admin and the profile come from the SAME
 // shared account used on arpansarkar.org — nothing local to set up here.
@@ -33,6 +29,7 @@ export default function Dashboard() {
   const [tab, setTab] = useState('mentorship');
   const [purchases, setPurchases] = useState([]);
   const [groupSessions, setGroupSessions] = useState([]);
+  const [plansByKey, setPlansByKey] = useState({});
   const [loading, setLoading] = useState(true);
   const [bookingFor, setBookingFor] = useState(null);
 
@@ -46,9 +43,11 @@ export default function Dashboard() {
         .eq('status', 'paid')
         .order('created_at', { ascending: false }),
       supabase.from('group_sessions').select('*'),
-    ]).then(([purchasesRes, groupRes]) => {
+      supabase.from('plans').select('*'),
+    ]).then(([purchasesRes, groupRes, plansRes]) => {
       setPurchases(purchasesRes.data || []);
       setGroupSessions(groupRes.data || []);
+      setPlansByKey(Object.fromEntries((plansRes.data || []).map((p) => [p.plan_key, p])));
       setLoading(false);
     });
   }, [session.user.id]);
@@ -61,9 +60,12 @@ export default function Dashboard() {
   const firstName = profile?.full_name?.split(' ')[0] || 'there';
 
   const needsBooking = purchases.filter(
-    (p) => SELF_SCHEDULED_PLANS.includes(p.plan_key) && !p.scheduled_date && (p.weekly_day === null || p.weekly_day === undefined)
+    (p) =>
+      plansByKey[p.plan_key]?.schedule_type !== 'admin_sets' &&
+      !p.scheduled_date &&
+      (p.weekly_day === null || p.weekly_day === undefined)
   );
-  const { past, today, upcoming } = buildSessionInstances(purchases, groupSessions);
+  const { past, today, upcoming } = buildSessionInstances(purchases, groupSessions, plansByKey);
 
   return (
     <div className="min-h-screen bg-base">
@@ -140,6 +142,7 @@ export default function Dashboard() {
                   firstName={firstName}
                   hasAnyPurchase={purchases.length > 0}
                   needsBooking={needsBooking}
+                  plansByKey={plansByKey}
                   past={past}
                   today={today}
                   upcoming={upcoming}
@@ -155,7 +158,12 @@ export default function Dashboard() {
       </div>
 
       {bookingFor && (
-        <CompleteBookingModal purchase={bookingFor} onClose={() => setBookingFor(null)} onSaved={handleBookingSaved} />
+        <CompleteBookingModal
+          purchase={bookingFor}
+          plan={plansByKey[bookingFor.plan_key]}
+          onClose={() => setBookingFor(null)}
+          onSaved={handleBookingSaved}
+        />
       )}
 
       {needsOnboarding && (
@@ -169,7 +177,7 @@ export default function Dashboard() {
   );
 }
 
-function MentorshipTab({ firstName, hasAnyPurchase, needsBooking, past, today, upcoming, onCompleteBooking }) {
+function MentorshipTab({ firstName, hasAnyPurchase, needsBooking, plansByKey, past, today, upcoming, onCompleteBooking }) {
   if (!hasAnyPurchase) {
     return (
       <div>
@@ -188,7 +196,7 @@ function MentorshipTab({ firstName, hasAnyPurchase, needsBooking, past, today, u
       {needsBooking.length > 0 && (
         <div className="mt-6 space-y-3">
           {needsBooking.map((p) => (
-            <PurchaseCard key={p.id} purchase={p} onCompleteBooking={onCompleteBooking} />
+            <PurchaseCard key={p.id} purchase={p} plan={plansByKey[p.plan_key]} onCompleteBooking={onCompleteBooking} />
           ))}
         </div>
       )}
@@ -230,7 +238,7 @@ function EmptyState() {
         Grab a mentorship plan on arpansarkar.org — it'll unlock right here as soon as payment goes through.
       </p>
       <a
-        href="https://www.arpansarkar.org"
+        href="https://www.arpansarkar.org/plans"
         className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-violet px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-soft"
       >
         View plans <ArrowRight size={14} />
