@@ -1,6 +1,21 @@
-import { Calendar } from 'lucide-react';
+import { useState } from 'react';
+import { Calendar, Copy, Check } from 'lucide-react';
 
 export default function SessionInstanceRow({ instance }) {
+  const [copied, setCopied] = useState(false);
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(instance.zoomJoinUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard API can fail on non-secure contexts or older browsers —
+      // fall back to a manual select so the user can still copy by hand.
+      window.prompt('Copy this link:', instance.zoomJoinUrl);
+    }
+  };
+
   return (
     <div className="flex items-center justify-between rounded-xl border border-line bg-panel px-4 py-3">
       <div className="flex items-center gap-3">
@@ -15,15 +30,30 @@ export default function SessionInstanceRow({ instance }) {
           </div>
         </div>
       </div>
-      {instance.zoomJoinUrl && (
-        <a
-          href={instance.zoomJoinUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-lg border border-line px-3 py-1.5 text-xs text-white/70 transition hover:border-violet/50 hover:text-white"
-        >
-          Join Zoom
-        </a>
+      {instance.zoomJoinUrl ? (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={copyLink}
+            title="Copy meeting link"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-white/50 transition hover:border-violet/50 hover:text-white"
+          >
+            {copied ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+          </button>
+          <a
+            href={instance.zoomJoinUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg border border-line px-3 py-1.5 text-xs text-white/70 transition hover:border-violet/50 hover:text-white"
+          >
+            Join Zoom
+          </a>
+        </div>
+      ) : (
+        instance.isGroup && (
+          <span className="rounded-lg border border-dashed border-line px-3 py-1.5 text-xs text-white/30">
+            Link coming soon
+          </span>
+        )
       )}
     </div>
   );
