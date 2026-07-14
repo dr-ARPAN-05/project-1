@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MessageCircle, ArrowRight, CalendarClock } from 'lucide-react';
+import { MessageCircle, ArrowRight, CalendarClock, Home, LogOut } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { supabase } from '../lib/supabaseClient';
 import { buildSessionInstances } from '../lib/sessionInstances';
@@ -69,25 +69,35 @@ export default function Dashboard() {
 
       <div className="flex flex-col md:flex-row">
         <aside className="border-b border-line md:min-h-screen md:w-60 md:border-b-0 md:border-r">
-          <div className="flex items-center justify-between px-5 py-5 md:block">
+          <div className="px-5 py-5">
             <p className="font-display text-lg font-bold text-white">
               Arpan<span className="text-amber">Mentors</span>
             </p>
-            <button
-              onClick={signOut}
-              className="rounded-full border border-line px-3 py-1.5 text-xs text-white/60 hover:border-violet/50 hover:text-white md:hidden"
-            >
-              Sign out
-            </button>
           </div>
 
-          <nav className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:overflow-visible md:px-3">
+          <nav className="flex flex-col gap-1 px-3 pb-3">
             <p className="hidden px-2 pb-1 text-[11px] uppercase tracking-wider text-white/30 md:block">
               My Account
             </p>
-            <div className="flex shrink-0 items-center gap-2 rounded-lg bg-violet/15 px-3 py-2 text-left text-sm text-lavender">
+            <div className="flex items-center gap-2 rounded-lg bg-violet/15 px-3 py-2 text-left text-sm text-lavender">
               <CalendarClock size={15} /> My Mentorship
             </div>
+
+            <p className="mt-3 hidden px-2 pb-1 text-[11px] uppercase tracking-wider text-white/30 md:block">
+              Ecosystem
+            </p>
+            <a
+              href="https://arpansarkar.org/dashboard"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white/60 transition hover:bg-panel hover:text-white"
+            >
+              <Home size={15} /> Homepage
+            </a>
+            <button
+              onClick={signOut}
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white/60 transition hover:bg-red-500/10 hover:text-red-400"
+            >
+              <LogOut size={15} /> Sign out
+            </button>
           </nav>
 
           <div className="hidden items-center gap-2 border-t border-line px-5 py-4 md:flex">
@@ -98,9 +108,6 @@ export default function Dashboard() {
               <div className="truncate text-sm text-white">{profile?.full_name || 'You'}</div>
               <div className="truncate text-xs text-white/40">{session.user.email}</div>
             </div>
-            <button onClick={signOut} className="text-white/30 hover:text-white" title="Sign out">
-              ⎋
-            </button>
           </div>
         </aside>
 
@@ -166,18 +173,18 @@ function MentorshipTab({ firstName, hasAnyPurchase, needsBooking, plansByKey, pa
         </div>
       )}
 
-      <SessionRow title="Past sessions" instances={past} emptyLabel="No past sessions exist" />
-      <SessionRow title="Scheduled today" instances={today} emptyLabel="No sessions today" />
+      <SessionRow title="Scheduled today" instances={today} emptyLabel="No sessions today" showLink />
       <SessionRow
         title="Upcoming sessions"
         instances={upcoming}
         emptyLabel="No upcoming sessions for now. Book one today!"
       />
+      <SessionRow title="Past sessions" instances={past} emptyLabel="No past sessions exist" />
     </div>
   );
 }
 
-function SessionRow({ title, instances, emptyLabel }) {
+function SessionRow({ title, instances, emptyLabel, showLink = false }) {
   return (
     <div className="mt-8">
       <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-white/50">{title}</h2>
@@ -186,7 +193,7 @@ function SessionRow({ title, instances, emptyLabel }) {
       ) : (
         <div className="space-y-2">
           {instances.map((inst) => (
-            <SessionInstanceRow key={inst.id} instance={inst} />
+            <SessionInstanceRow key={inst.id} instance={inst} showLink={showLink} />
           ))}
         </div>
       )}

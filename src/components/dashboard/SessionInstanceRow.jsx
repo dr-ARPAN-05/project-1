@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Calendar, Copy, Check } from 'lucide-react';
 
-export default function SessionInstanceRow({ instance }) {
+export default function SessionInstanceRow({ instance, showLink = false }) {
   const [copied, setCopied] = useState(false);
 
   const copyLink = async () => {
@@ -30,31 +30,35 @@ export default function SessionInstanceRow({ instance }) {
           </div>
         </div>
       </div>
-      {instance.zoomJoinUrl ? (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={copyLink}
-            title="Copy meeting link"
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-white/50 transition hover:border-violet/50 hover:text-white"
-          >
-            {copied ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
-          </button>
-          <a
-            href={instance.zoomJoinUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg border border-line px-3 py-1.5 text-xs text-white/70 transition hover:border-violet/50 hover:text-white"
-          >
-            Join Zoom
-          </a>
-        </div>
-      ) : (
-        instance.isGroup && (
-          <span className="rounded-lg border border-dashed border-line px-3 py-1.5 text-xs text-white/30">
-            Link coming soon
-          </span>
-        )
-      )}
+      {/* Meeting link only ever surfaces for today's sessions — upcoming and
+          past rows intentionally never show Join/Copy, even if a link
+          exists on the record, to keep it from being clicked early/late. */}
+      {showLink &&
+        (instance.zoomJoinUrl ? (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={copyLink}
+              title="Copy meeting link"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-white/50 transition hover:border-violet/50 hover:text-white"
+            >
+              {copied ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+            </button>
+            <a
+              href={instance.zoomJoinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-line px-3 py-1.5 text-xs text-white/70 transition hover:border-violet/50 hover:text-white"
+            >
+              Join Zoom
+            </a>
+          </div>
+        ) : (
+          instance.isGroup && (
+            <span className="rounded-lg border border-dashed border-line px-3 py-1.5 text-xs text-white/30">
+              Link coming soon
+            </span>
+          )
+        ))}
     </div>
   );
 }
