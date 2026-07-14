@@ -1,22 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Users, Clock, Settings, MessageCircle, ArrowRight, CalendarClock } from 'lucide-react';
+import { MessageCircle, ArrowRight, CalendarClock } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { supabase } from '../lib/supabaseClient';
 import { buildSessionInstances } from '../lib/sessionInstances';
 import PurchaseCard from '../components/dashboard/PurchaseCard.jsx';
 import SessionInstanceRow from '../components/dashboard/SessionInstanceRow.jsx';
 import CompleteBookingModal from '../components/dashboard/CompleteBookingModal.jsx';
-import AdminGroupSessions from '../components/dashboard/AdminGroupSessions.jsx';
-import AdminBlockedSlots from '../components/dashboard/AdminBlockedSlots.jsx';
-import AdminAllPurchases from '../components/dashboard/AdminAllPurchases.jsx';
 import OnboardingModal from '../components/dashboard/OnboardingModal.jsx';
 import SEO from '../components/SEO.jsx';
-
-const ADMIN_TABS = [
-  { id: 'admin_group', label: 'Group Sessions', icon: Users },
-  { id: 'admin_blocked', label: 'Block Slots', icon: Clock },
-  { id: 'admin_purchases', label: 'All Purchases', icon: Settings },
-];
 
 const CONTACT_PHONE = import.meta.env.VITE_CONTACT_PHONE || '';
 const WHATSAPP_DIGITS = CONTACT_PHONE.replace(/\D/g, '');
@@ -24,9 +15,14 @@ const WHATSAPP_DIGITS = CONTACT_PHONE.replace(/\D/g, '');
 // Auth is already resolved by the time this renders — App.jsx wraps this
 // route in <ProtectedRoute>. is_admin and the profile come from the SAME
 // shared account used on arpansarkar.org — nothing local to set up here.
+//
+// NOTE: this dashboard is student-facing ONLY. Admin tooling (group
+// sessions, blocked slots, all-purchases) lives exclusively on the
+// homepage dashboard at arpansarkar.org/dashboard — see AdminGroupSessions,
+// AdminBlockedSlots, AdminAllPurchases in project-0. An admin visiting this
+// page just sees their own mentorship view, same as any other user.
 export default function Dashboard() {
-  const { session, profile, isAdmin, signOut, needsOnboarding, refreshProfile } = useAuth();
-  const [tab, setTab] = useState('mentorship');
+  const { session, profile, signOut, needsOnboarding, refreshProfile } = useAuth();
   const [purchases, setPurchases] = useState([]);
   const [groupSessions, setGroupSessions] = useState([]);
   const [plansByKey, setPlansByKey] = useState({});
@@ -89,33 +85,9 @@ export default function Dashboard() {
             <p className="hidden px-2 pb-1 text-[11px] uppercase tracking-wider text-white/30 md:block">
               My Account
             </p>
-            <button
-              onClick={() => setTab('mentorship')}
-              className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition ${
-                tab === 'mentorship' ? 'bg-violet/15 text-lavender' : 'text-white/60 hover:bg-panel hover:text-white'
-              }`}
-            >
+            <div className="flex shrink-0 items-center gap-2 rounded-lg bg-violet/15 px-3 py-2 text-left text-sm text-lavender">
               <CalendarClock size={15} /> My Mentorship
-            </button>
-
-            {isAdmin && (
-              <>
-                <p className="hidden px-2 pb-1 pt-3 text-[11px] uppercase tracking-wider text-white/30 md:block">
-                  Admin
-                </p>
-                {ADMIN_TABS.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setTab(t.id)}
-                    className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition ${
-                      tab === t.id ? 'bg-violet/15 text-lavender' : 'text-white/60 hover:bg-panel hover:text-white'
-                    }`}
-                  >
-                    <t.icon size={15} /> {t.label}
-                  </button>
-                ))}
-              </>
-            )}
+            </div>
           </nav>
 
           <div className="hidden items-center gap-2 border-t border-line px-5 py-4 md:flex">
@@ -136,23 +108,16 @@ export default function Dashboard() {
           {loading ? (
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-violet border-t-transparent" />
           ) : (
-            <>
-              {tab === 'mentorship' && (
-                <MentorshipTab
-                  firstName={firstName}
-                  hasAnyPurchase={purchases.length > 0}
-                  needsBooking={needsBooking}
-                  plansByKey={plansByKey}
-                  past={past}
-                  today={today}
-                  upcoming={upcoming}
-                  onCompleteBooking={setBookingFor}
-                />
-              )}
-              {isAdmin && tab === 'admin_group' && <AdminGroupSessions />}
-              {isAdmin && tab === 'admin_blocked' && <AdminBlockedSlots />}
-              {isAdmin && tab === 'admin_purchases' && <AdminAllPurchases />}
-            </>
+            <MentorshipTab
+              firstName={firstName}
+              hasAnyPurchase={purchases.length > 0}
+              needsBooking={needsBooking}
+              plansByKey={plansByKey}
+              past={past}
+              today={today}
+              upcoming={upcoming}
+              onCompleteBooking={setBookingFor}
+            />
           )}
         </main>
       </div>
