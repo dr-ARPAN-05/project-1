@@ -1,16 +1,16 @@
 // ─── Slot definitions (fixed — no student choice) ────────────
-// personal_session (one-time):     7:45–8:15 PM  → one slot per day
-// personal_monthly/yearly/ghost:   6:00–6:30 PM  OR  6:30–7:00 PM  → 2 slots per day (first-come)
+// personal_session (one-time):     10:00–10:30 PM → one slot per day
+// personal_monthly/yearly/ghost:   9:00–9:30 PM  OR  9:30–10:00 PM → 2 slots per day (first-come)
 // group (all):                     7:00–7:40 PM  → admin sets date, no slot choice
 
 export const FIXED_SLOTS = {
   // key → { label, start, end }
   personal_session: [
-    { key: '19:45', label: '7:45 – 8:15 PM', start: '19:45', end: '20:15' },
+    { key: '22:00', label: '10:00 – 10:30 PM', start: '22:00', end: '22:30' },
   ],
   personal_weekly: [
-    { key: '18:00', label: '6:00 – 6:30 PM', start: '18:00', end: '18:30' },
-    { key: '18:30', label: '6:30 – 7:00 PM', start: '18:30', end: '19:00' },
+    { key: '21:00', label: '9:00 – 9:30 PM', start: '21:00', end: '21:30' },
+    { key: '21:30', label: '9:30 – 10:00 PM', start: '21:30', end: '22:00' },
   ],
   group: [
     { key: '19:00', label: '7:00 – 7:40 PM', start: '19:00', end: '19:40' },
@@ -50,10 +50,10 @@ export const PLANS = {
     name: 'Personal Session',
     price: 499,
     billing: 'one_time',
-    tagline: 'One-time 1-on-1 · 7:45–8:15 PM · you pick the date',
+    tagline: 'One-time 1-on-1 · 10:00–10:30 PM · you pick the date',
     features: [
       'You choose any available date',
-      '30-min 1-on-1 Zoom (7:45–8:15 PM)',
+      '30-min 1-on-1 Zoom (10:00–10:30 PM)',
       'Personalised strategy & doubt-clearing',
       'WhatsApp follow-up after session',
       'Session recording shared post-call',
@@ -66,10 +66,10 @@ export const PLANS = {
     name: 'Group Session',
     price: 199,
     billing: 'one_time',
-    tagline: 'Shared session · 7:00–7:40 PM · Arpan sets the date',
+    tagline: 'One-time shared session · Arpan sets the date & time',
     features: [
-      'Arpan schedules the session date',
-      '40-min group Zoom (7:00–7:40 PM)',
+      'Arpan schedules the exact date and time',
+      '40-min group Zoom session',
       'Batch Q&A and strategy discussion',
       'WhatsApp group access',
       'Session recording shared',
@@ -82,11 +82,11 @@ export const PLANS = {
     name: 'Personal Monthly',
     price: 999,
     billing: 'monthly',
-    tagline: '4 sessions/mo · 6:00 or 6:30 PM · you pick the day',
+    tagline: '4 sessions/mo · 9:00 or 9:30 PM · you pick the day',
     features: [
       'Pick your day of week (Mon–Sat)',
       '30-min 1-on-1 Zoom every week',
-      'Slots: 6:00–6:30 PM or 6:30–7:00 PM',
+      'Slots: 9:00–9:30 PM or 9:30–10:00 PM',
       'Personalised monthly roadmap',
       'Direct WhatsApp access',
       'Mock test analysis each session',
@@ -101,7 +101,7 @@ export const PLANS = {
     billing: 'yearly',
     originalPrice: 999 * 12,
     discountPct: 17,
-    tagline: '52 sessions · 6:00 or 6:30 PM · save 17%',
+    tagline: '52 sessions · 9:00 or 9:30 PM · save 17%',
     features: [
       'Everything in Monthly plan',
       '52 sessions over the full year',
@@ -118,10 +118,10 @@ export const PLANS = {
     name: 'Group Monthly',
     price: 399,
     billing: 'monthly',
-    tagline: '4 sessions/mo · 7:00–7:40 PM · Arpan sets the day',
+    tagline: 'Weekly cohort · Sundays 7:00–7:40 PM · starts at 20 students',
     features: [
-      'Arpan schedules the weekly day',
-      '40-min group Zoom (7:00–7:40 PM) every week',
+      'Every Sunday, 7:00–7:40 PM group Zoom',
+      'Starts running once 20 students have joined',
       'Shared batch strategy sessions',
       'WhatsApp group community',
       'Recorded sessions for replay',
@@ -132,10 +132,17 @@ export const PLANS = {
   },
 };
 
-// Flat slot label map for Dashboard display (keyed by slot key)
+// Flat slot label map for Dashboard display (keyed by slot key).
+// Current slots first, then legacy keys kept ONLY so bookings made before
+// this timing change still show a readable label instead of a raw "18:00".
 export const SLOT_LABELS = {
+  // current
+  '22:00': '10:00 – 10:30 PM',
+  '21:00': '9:00 – 9:30 PM',
+  '21:30': '9:30 – 10:00 PM',
+  '19:00': '7:00 – 7:40 PM',
+  // legacy (pre-timing-change) — display only, no longer offered
   '19:45': '7:45 – 8:15 PM',
   '18:00': '6:00 – 6:30 PM',
   '18:30': '6:30 – 7:00 PM',
-  '19:00': '7:00 – 7:40 PM',
 };

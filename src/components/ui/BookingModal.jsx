@@ -283,7 +283,7 @@ export default function BookingModal({ plan, onClose }) {
                 {isPickDate && (
                   <>
                     <div className="fixed-time-info">
-                      <Clock size={13}/> Your session time: <b>7:45 – 8:15 PM IST</b>
+                      <Clock size={13}/> Your session time: <b>10:00 – 10:30 PM IST</b>
                     </div>
                     <div className="cal-section">
                       <div className="cal-header">
@@ -341,7 +341,7 @@ export default function BookingModal({ plan, onClose }) {
                 {isPickWeekly && (
                   <>
                     <div className="fixed-time-info">
-                      <Clock size={13}/> Available times: <b>6:00–6:30 PM</b> or <b>6:30–7:00 PM IST</b>
+                      <Clock size={13}/> Available times: <b>9:00–9:30 PM</b> or <b>9:30–10:00 PM IST</b>
                     </div>
                     <div className="cal-section">
                       <div className="slot-label"><Calendar size={14}/> Pick your weekly session day</div>
@@ -404,7 +404,7 @@ export default function BookingModal({ plan, onClose }) {
               <div className="modal-footer">
                 {canProceed && (
                   <div className="booking-summary">
-                    {isPickDate && selectedDate && <><Calendar size={13}/> {displayDate(selectedDate)} · 7:45–8:15 PM</>}
+                    {isPickDate && selectedDate && <><Calendar size={13}/> {displayDate(selectedDate)} · 10:00–10:30 PM</>}
                     {isPickWeekly && selectedDay !== null && selectedSlot && (
                       <><Calendar size={13}/> Every {DAYS[selectedDay]} · {slots.find(s=>s.key===selectedSlot)?.label}</>
                     )}

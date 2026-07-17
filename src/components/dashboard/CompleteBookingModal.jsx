@@ -142,21 +142,22 @@ export default function CompleteBookingModal({ purchase, plan, onClose, onSaved 
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {availableDates.slice(0, 20).map((d) => {
-                  const blocked = isDateBlocked(d) || availableSlotsForDate(d).length === 0;
+                  const full = isDateBlocked(d) || availableSlotsForDate(d).length === 0;
+                  const isSelected = selectedDate && fmt(selectedDate) === fmt(d);
                   return (
                     <button
                       key={fmt(d)}
-                      disabled={blocked}
+                      disabled={full}
                       onClick={() => {
                         setSelectedDate(d);
                         setSelectedSlot(null);
                       }}
                       className={`rounded-lg border px-2 py-2 text-center text-xs transition ${
-                        blocked
-                          ? 'cursor-not-allowed border-line/50 text-white/20'
-                          : selectedDate && fmt(selectedDate) === fmt(d)
-                            ? 'border-violet bg-violet/15 text-white'
-                            : 'border-line text-white/60 hover:border-violet/40'
+                        isSelected
+                          ? 'border-violet bg-violet/15 text-white'
+                          : full
+                            ? 'cursor-not-allowed border-red-500/30 bg-red-500/5 text-red-400/60'
+                            : 'border-emerald-500/40 bg-emerald-500/5 text-emerald-300/90 hover:border-emerald-400'
                       }`}
                     >
                       <div>{d.toLocaleDateString('en-IN', { weekday: 'short' })}</div>
@@ -164,6 +165,14 @@ export default function CompleteBookingModal({ purchase, plan, onClose, onSaved 
                     </button>
                   );
                 })}
+              </div>
+              <div className="mt-2 flex items-center gap-3 text-[11px] text-white/40">
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500/70" /> Open
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-red-500/70" /> Full
+                </span>
               </div>
 
               {selectedDate && (
